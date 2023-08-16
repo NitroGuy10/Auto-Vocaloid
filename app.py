@@ -35,13 +35,15 @@
 #
 
 
+import random
 from nltk.tokenize import SyllableTokenizer
 from nltk import word_tokenize
 
 import pyautogui as pag
 
 pag.PAUSE = 0.1
-pag.FAILSAFE = False
+pag.FAILSAFE = True
+pag.useImageNotFoundException()
 
 input("Press enter to continue (the program will take control of the mouse and keyboard)...")
 
@@ -61,16 +63,20 @@ window.resizeTo(1800, 1000)
 pag.sleep(1)
 
 # Open the editor if it's not already open
-pag.useImageNotFoundException()
-try:
-    edit_button_location = pag.locateOnScreen("locate_images/edit_button.png")
-    pag.click(edit_button_location[0] + 10, edit_button_location[1] + 10)
-except pag.ImageNotFoundException:
-    pass
+if not pag.pixelMatchesColor(1165, 58, (61, 126, 165)):
+    pag.click(1165, 58)
+    pag.sleep(0.2)
+
+
+# Close the inspector if it's open
+if pag.pixelMatchesColor(1284, 63, (61, 126, 165)):
+    pag.click(1284, 63)
+    pag.sleep(0.2)
+
 
 # Resize the editor
 editor_resize_location = pag.locateOnScreen("locate_images/style.png")
-pag.moveTo(editor_resize_location[0], editor_resize_location[1] + 4)
+pag.moveTo(editor_resize_location[0], editor_resize_location[1] + 2)
 pag.mouseDown()
 pag.moveTo(900, 200)
 pag.sleep(0.3)
@@ -97,6 +103,12 @@ pag.moveTo(1789, 641)
 pag.sleep(0.2)
 pag.mouseUp()
 
+# Show pitch bend automation
+pag.click(30, 825)
+pag.sleep(0.2)
+pag.click(30, 865)
+
+
 
 SSP = SyllableTokenizer()
 
@@ -122,12 +134,16 @@ while True:
     pag.sleep(0.1)
     pag.mouseUp()
 
-
-
+    # Set the tempo
+    pag.doubleClick(1043, 68)
+    pag.write("130")
+    pag.press("enter")
 
     phrase = input("> ")
+    window.activate()
 
     # Tokenize the phrase into words
+    phrase = phrase.replace("/", " slash ").replace("_", " underscore ").replace("@", " at ").replace("%", " percent ").replace("&", " and ").replace("#", "hashtag").replace("$", " dollar ")
     words = word_tokenize(phrase)
     fixed_words = []
     # Smoosh contractions together
@@ -143,4 +159,71 @@ while True:
     # syllables = [SSP.tokenize(word) for word in fixed_words]
     # print(syllables)
 
-    print(" ".join(fixed_words))
+    vocaloid_string = " ".join(fixed_words)
+    print(vocaloid_string)
+
+    # Generate notes
+    NOTE_WIDTH = 18
+    MIN_Y = 500
+    MAX_Y = 550
+    MIN_X = 68
+    MAX_X = 400
+    notes = []
+    last_x = MIN_X
+    while last_x < MAX_X:
+        y = random.randint(MIN_Y, MAX_Y)
+        notes.append((last_x, y))
+        last_x += NOTE_WIDTH
+
+    # Place notes in the editor
+    pag.PAUSE = 0.01
+    for note in notes:
+        pag.moveTo(note[0], note[1])
+        pag.mouseDown()
+        # pag.sleep(0.1)
+        pag.moveRel(NOTE_WIDTH, 0)
+        # pag.sleep(0.1)
+        pag.mouseUp()
+    pag.sleep(3)
+
+    # Input the phrase
+    pag.press("left", presses=len(notes))
+    pag.sleep(1)
+    pag.press("enter")
+    pag.sleep(1)
+    pag.write(vocaloid_string)
+    pag.sleep(1)
+    pag.press("enter")
+    pag.sleep(3)
+
+    # Remove excess notes
+    pag.click(247, 218)
+    pag.sleep(0.1)
+    first_unused_note_location = None
+    try:
+        first_unused_note_location = pag.locateOnScreen("locate_images/selected_note_outline.png", region=(MIN_X - 10, MIN_Y - 10, MAX_X - MIN_X + 10, MAX_Y - MIN_Y + 10))
+    except pag.ImageNotFoundException:
+        first_unused_note_location = pag.locateOnScreen("locate_images/selected_note_outline2.png", region=(MIN_X - 10, MIN_Y - 10, MAX_X - MIN_X + 10, MAX_Y - MIN_Y + 10))
+    pag.moveTo(first_unused_note_location[0], first_unused_note_location[1] - 200)
+    pag.mouseDown()
+    pag.moveTo(MAX_X + 50, first_unused_note_location[1] + 200)
+    pag.mouseUp()
+    pag.sleep(0.5)
+    pag.press("delete")
+
+    # Open the inspector panel
+    pag.press("f5")
+
+    # Set note transitions and drift to the max
+    pag.hotkey("ctrl", "a")
+    pag.click(1737, 336)
+    pag.click(1737, 399)
+    pag.click(1737, 432)
+    pag.click(1737, 463)
+    pag.click(1737, 495)
+    pag.sleep(0.2)
+
+    # Play the phrase
+    pag.press("space")
+
+    exit()
