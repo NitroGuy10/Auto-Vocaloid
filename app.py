@@ -226,4 +226,43 @@ while True:
     # Play the phrase
     pag.press("space")
 
-    exit()
+    break
+
+input()
+
+# Temporary singing demo
+window.activate()
+pag.sleep(1)
+pag.press("alt")
+pag.sleep(0.1)
+pag.press("enter")
+pag.press("down", presses=2)
+pag.press("right")
+pag.press("enter")
+pag.sleep(1)
+try:
+    # Don't save changes if there are any
+    pag.locateOnScreen("locate_images/save_changes.png")
+    pag.press("right")
+    pag.press("enter")
+except pag.ImageNotFoundException:
+    pass
+pag.sleep(1)
+pag.press("enter")
+pag.sleep(1)
+
+lyrics = input("> ")
+
+window.activate()
+pag.sleep(1)
+pag.doubleClick(309, 200)
+pag.sleep(0.1)
+pag.press("right")
+pag.press("enter")
+pag.sleep(0.1)
+pag.write(lyrics)
+pag.sleep(0.5)
+pag.press("enter")
+pag.sleep(2)
+pag.press("space")
+
